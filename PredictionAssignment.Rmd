@@ -1,0 +1,71 @@
+---
+title: "PredictionAssignment"
+author: "Noah Hughes"
+date: "January 30, 2016"
+output: html_document
+---
+
+Check to see if files are download
+```{r}
+training = read.csv("pml-training.csv")
+testing = read.csv("pml-testing.csv")
+```
+
+Load Data from csv files
+```{r}
+training = read.csv("pml-training.csv")
+testing = read.csv("pml-testing.csv")
+```
+
+Remove the columns with Zero Variance
+```{r}
+library(caret)
+
+nearZeroColumns <- nearZeroVar(training)
+training <- training[, -nearZeroColumns]
+
+```
+
+Get the columns that are missing 80% of the data
+```{r}
+SumMissing <- sapply(training, function(x) {sum((is.na(x) | x == ""))})
+
+MissingDataCol <- names(SumMissing[SumMissing > 0.8 * length(training$classe)])
+
+```
+
+Get the columns with text instead of data
+```{r}
+TextCol <- c("X", "user_name", "raw_timestamp_part_1", "raw_timestamp_part_2",
+                 "cvtd_timestamp", "new_window", "num_window")
+
+```
+
+Remove Columns no data and text data
+```{r}
+ColRemove <- c(MissingDataCol,TextCol)
+training <- training[, !names(training) %in% ColRemove]
+
+testing <- testing[, !names(testing) %in% ColRemove]
+```
+
+Setup Traing Control Model
+```{r}
+fitControl <- trainControl(method = "cv",number = 10,allowParallel = TRUE)        
+```
+
+Run 3 models on the Data Random Forest, Boosting, and Linear Model
+```{r}
+RfFit <- train(classe ~., method="rf",data=training,trControl = fitControl)
+
+GbmFit <- train(classe ~., method="gbm",data=training,trControl = fitControl)
+
+GlmnetFit <- train(classe ~., method="glmnet",data=training,trControl = fitControl)
+
+stopCluster(cluster)
+```
+
+Check models against prediction data
+```{r}
+RfPredict <- predict(RfFit, testing)
+```
