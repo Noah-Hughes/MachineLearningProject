@@ -92,14 +92,14 @@ if(!file.exists(&quot;pml-testing.csv&quot;)){
 <pre class="r"><code>nearZeroColumns &lt;- nearZeroVar(data)
 data &lt;- data[, -nearZeroColumns]</code></pre>
 <p>Get the columns that are missing more than 80% of the data</p>
-<pre class="r"><code>SumMissing &lt;- sapply(data, function(x) {sum((is.na(x) | x == &quot;&quot;))})
+<pre class="r"><code>sumMissing &lt;- sapply(data, function(x) {sum((is.na(x) | x == &quot;&quot;))})
 
-MissingDataCol &lt;- names(SumMissing[SumMissing &gt; 0.8 * length(data$classe)])</code></pre>
+missingDataCol &lt;- names(sumMissing[sumMissing &gt; 0.8 * length(data$classe)])</code></pre>
 <p>Get the columns with text instead of data</p>
-<pre class="r"><code>TextCol &lt;- c(&quot;X&quot;, &quot;user_name&quot;, &quot;raw_timestamp_part_1&quot;, &quot;raw_timestamp_part_2&quot;,&quot;cvtd_timestamp&quot;, &quot;new_window&quot;, &quot;num_window&quot;)</code></pre>
+<pre class="r"><code>textCol &lt;- c(&quot;X&quot;, &quot;user_name&quot;, &quot;raw_timestamp_part_1&quot;, &quot;raw_timestamp_part_2&quot;,&quot;cvtd_timestamp&quot;, &quot;new_window&quot;, &quot;num_window&quot;)</code></pre>
 <p>Remove Columns no data and text data</p>
-<pre class="r"><code>ColRemove &lt;- c(MissingDataCol,TextCol)
-data &lt;- data[, !names(data) %in% ColRemove]</code></pre>
+<pre class="r"><code>colRemove &lt;- c(missingDataCol,textCol)
+data &lt;- data[, !names(data) %in% colRemove]</code></pre>
 </div>
 <div id="cross-validataion" class="section level2">
 <h2>Cross Validataion</h2>
@@ -156,7 +156,7 @@ print(rfmatix)</code></pre>
 ## Detection Rate         0.2845   0.1927   0.1728   0.1624   0.1830
 ## Detection Prevalence   0.2852   0.1940   0.1744   0.1629   0.1835
 ## Balanced Accuracy      0.9995   0.9972   0.9947   0.9950   0.9976</code></pre>
-<p>The accuracy of our model is 99.5% which is pretty good</p>
+<p>The accuracy of our model is 99.5% which is pretty good. Using cross validation the out of sample error rate is 0.5% (1-99.5%). Looked at other models such as more Random Forest with number of trees at (10,30,100) and also GBM. This model was quick to run and had a low sample error rate.</p>
 </div>
 <div id="running-against-the-test-set" class="section level2">
 <h2>Running against the Test Set</h2>

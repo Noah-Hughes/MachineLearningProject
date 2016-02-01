@@ -2,7 +2,9 @@
 title: "PredictionAssignment"
 author: "Noah Hughes"
 date: "January 30, 2016"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 [Github link](https://github.com/Noah-Hughes/MachineLearningProject)
@@ -42,22 +44,22 @@ data <- data[, -nearZeroColumns]
 
 Get the columns that are missing more than 80% of the data
 ```{r}
-SumMissing <- sapply(data, function(x) {sum((is.na(x) | x == ""))})
+sumMissing <- sapply(data, function(x) {sum((is.na(x) | x == ""))})
 
-MissingDataCol <- names(SumMissing[SumMissing > 0.8 * length(data$classe)])
+missingDataCol <- names(sumMissing[sumMissing > 0.8 * length(data$classe)])
 
 ```
 
 Get the columns with text instead of data
 ```{r}
-TextCol <- c("X", "user_name", "raw_timestamp_part_1", "raw_timestamp_part_2","cvtd_timestamp", "new_window", "num_window")
+textCol <- c("X", "user_name", "raw_timestamp_part_1", "raw_timestamp_part_2","cvtd_timestamp", "new_window", "num_window")
 
 ```
 
 Remove Columns no data and text data
 ```{r}
-ColRemove <- c(MissingDataCol,TextCol)
-data <- data[, !names(data) %in% ColRemove]
+colRemove <- c(missingDataCol,textCol)
+data <- data[, !names(data) %in% colRemove]
 
 ```
 
@@ -87,7 +89,7 @@ rfmatix <- confusionMatrix(rfPredict, testing$classe)
 print(rfmatix)
 ```
 
-The accuracy of our model is 99.5% which is pretty good
+The accuracy of our model is 99.5% which is pretty good.  Using cross validation the out of sample error rate is 0.5% (1-99.5%).  Looked at other models such as more Random Forest with number of trees at (10,30,100) and also GBM.  This model was quick to run and had a low sample error rate. 
 
 ## Running against the Test Set
 
