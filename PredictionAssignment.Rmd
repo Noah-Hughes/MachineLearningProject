@@ -5,67 +5,97 @@ date: "January 30, 2016"
 output: html_document
 ---
 
+[Github link](https://github.com/Noah-Hughes/MachineLearningProject)
+
+#Introduction
+In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. 
+
+The goal of your project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. You may use any of the other variables to predict with. You should create a report describing how you built your model, how you used cross validation, what you think the expected out of sample error is, and why you made the choices you did. You will also use your prediction model to predict 20 different test cases.
+
+##Loading the data
+
 Check to see if files are download
 ```{r}
-training = read.csv("pml-training.csv")
-testing = read.csv("pml-testing.csv")
+if(!file.exists("pml-training.csv")){
+  download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv","pml-training.csv")
+}
+
+if(!file.exists("pml-testing.csv")){
+  download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv","pml-testing.csv")
+}
+
 ```
 
-Load Data from csv files
+Check to see if files are download
 ```{r}
-training = read.csv("pml-training.csv")
-testing = read.csv("pml-testing.csv")
+data = read.csv("pml-training.csv")
 ```
 
 Remove the columns with Zero Variance
 ```{r}
 library(caret)
 
-nearZeroColumns <- nearZeroVar(training)
-training <- training[, -nearZeroColumns]
+nearZeroColumns <- nearZeroVar(data)
+data <- data[, -nearZeroColumns]
 
 ```
 
-Get the columns that are missing 80% of the data
+Get the columns that are missing more than 80% of the data
 ```{r}
-SumMissing <- sapply(training, function(x) {sum((is.na(x) | x == ""))})
+SumMissing <- sapply(data, function(x) {sum((is.na(x) | x == ""))})
 
-MissingDataCol <- names(SumMissing[SumMissing > 0.8 * length(training$classe)])
+MissingDataCol <- names(SumMissing[SumMissing > 0.8 * length(data$classe)])
 
 ```
 
 Get the columns with text instead of data
 ```{r}
-TextCol <- c("X", "user_name", "raw_timestamp_part_1", "raw_timestamp_part_2",
-                 "cvtd_timestamp", "new_window", "num_window")
+TextCol <- c("X", "user_name", "raw_timestamp_part_1", "raw_timestamp_part_2","cvtd_timestamp", "new_window", "num_window")
 
 ```
 
 Remove Columns no data and text data
 ```{r}
 ColRemove <- c(MissingDataCol,TextCol)
-training <- training[, !names(training) %in% ColRemove]
+data <- data[, !names(data) %in% ColRemove]
 
-testing <- testing[, !names(testing) %in% ColRemove]
 ```
 
-Setup Traing Control Model
+## Cross Validataion
+
+We will split the data into a training and testing set in order to do cross validation of our model
 ```{r}
-fitControl <- trainControl(method = "cv",number = 10,allowParallel = TRUE)        
+set.seed(1337)
+inTrain <- createDataPartition(data$classe, p = 0.8, list = FALSE)
+training <- data[inTrain, ]
+testing <- data[-inTrain, ]
 ```
 
-Run 3 models on the Data Random Forest, Boosting, and Linear Model
+## Create Model
+
+Using Random Forest we create our model
 ```{r}
-RfFit <- train(classe ~., method="rf",data=training,trControl = fitControl)
-
-GbmFit <- train(classe ~., method="gbm",data=training,trControl = fitControl)
-
-GlmnetFit <- train(classe ~., method="glmnet",data=training,trControl = fitControl)
-
-stopCluster(cluster)
+library(randomForest)
+rf10Model <- randomForest(classe ~ ., data = training, importance = TRUE)
 ```
 
-Check models against prediction data
+
+Check rf 10 tree models against prediction data
 ```{r}
-RfPredict <- predict(RfFit, testing)
+rfPredict <- predict(rf10Model, testing)
+rfmatix <- confusionMatrix(rfPredict, testing$classe)
+print(rfmatix)
 ```
+
+The accuracy of our model is 99.5% which is pretty good
+
+## Running against the Test Set
+
+Running the model against the original course test set
+```{r}
+test = read.csv("pml-testing.csv")
+testPredict <- predict(rf10Model, test)
+testPredict
+```
+
+
